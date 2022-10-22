@@ -1,30 +1,31 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include "opencv2/opencv.hpp"
+#include <filesystem>
 
+namespace fs = std::filesystem;
 using namespace cv;
 
-int main(int argc, char* argv[]) {
+void convert(char* path, int col_num, int row_num) {
 
-	int col_num = 1;				// —ñ•ûŒü‚Ì•ªŠ„”
-	int row_num = 4;				// s•ûŒü‚Ì•ªŠ„”
+	std::filesystem::path filepath = path;
+	cv::Mat input_image = cv::imread(filepath.generic_string(), -1); // åˆ†å‰²ã™ã‚‹ç”»åƒã®å–å¾—
 
-	cv::Mat input_image = cv::imread(argv[1], -1);	// •ªŠ„‚·‚é‰æ‘œ‚Ìæ“¾
 	if (input_image.empty() == true) {
-		std::cerr << "“ü—Í‰æ‘œ‚ªŒ©‚Â‚©‚ç‚È‚¢" << std::endl;
-		return false;
+		std::cerr << "å…¥åŠ›ç”»åƒãŒè¦‹ã¤ã‹ã‚‰ãªã„" << std::endl;
+		return;
 	}
 
-	int width = input_image.cols;	// “ü—Í‰æ‘œ‚Ì‰¡‚Ì’·‚³
-	int height = input_image.rows;	// “ü—Í‰æ‘œ‚Ìc‚Ì’·‚³
+	int width = input_image.cols; // å…¥åŠ›ç”»åƒã®æ¨ªã®é•·ã•
+	int height = input_image.rows; // å…¥åŠ›ç”»åƒã®ç¸¦ã®é•·ã•
 	std::cout << "Width = " << width << " / Height = " << height << std::endl;
 
-	int s_width = width % col_num;						// ‰¡•ûŒü‚Ì—]‚è
-	int* div_width = new int[col_num];		// •ªŠ„Œã‰æ‘œ‚Ì‰¡‚Ì’·‚³‚ğ“ü‚ê‚é”z—ñ
+	int s_width = width % col_num; // æ¨ªæ–¹å‘ã®ä½™ã‚Š
+	int* div_width = new int[col_num]; // åˆ†å‰²å¾Œç”»åƒã®æ¨ªã®é•·ã•ã‚’å…¥ã‚Œã‚‹é…åˆ—
 
 	for (int c = 0; c < col_num; c++) {
 
 		if (s_width > 0) {
-			div_width[c] = width / col_num + 1;    // —]‚è‚ğŠ„‚è“–‚Ä‚é
+			div_width[c] = width / col_num + 1; // ä½™ã‚Šã‚’å‰²ã‚Šå½“ã¦ã‚‹
 			s_width--;
 		}
 		else {
@@ -32,21 +33,20 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	int s_height = height % row_num;					// c•ûŒü‚Ì—]‚è
-	int* div_height = new int[row_num];		// •ªŠ„Œã‰æ‘œ‚Ìc‚Ì’·‚³‚ğ“ü‚ê‚é”z—ñ
+	int s_height = height % row_num; // ç¸¦æ–¹å‘ã®ä½™ã‚Š
+	int* div_height = new int[row_num]; // åˆ†å‰²å¾Œç”»åƒã®ç¸¦ã®é•·ã•ã‚’å…¥ã‚Œã‚‹é…åˆ—
 
 	for (int r = 0; r < row_num; r++) {
 
 		if (s_height > 0) {
-			div_height[r] = height / row_num + 1;    // —]‚è‚ğŠ„‚è“–‚Ä‚é
+			div_height[r] = height / row_num + 1;    // ä½™ã‚Šã‚’å‰²ã‚Šå½“ã¦ã‚‹
 			s_height--;
 		}
 		else {
 			div_height[r] = height / row_num;
 		}
 	}
-
-	// •ªŠ„‰æ‘œ‚Ìo—Í
+	// åˆ†å‰²ç”»åƒã®å‡ºåŠ›
 	int x = 0;
 	int y = 0;
 	cv::Mat new_image;
@@ -55,11 +55,11 @@ int main(int argc, char* argv[]) {
 	for (int r = 0; r < row_num; r++) {
 		for (int c = 0; c < col_num; c++) {
 
-			// •ªŠ„‚·‚é‰æ‘œ‚Ì(x, y, width, height)‚ğRect‚É“ü—Í
+			// åˆ†å‰²ã™ã‚‹ç”»åƒã®(x, y, width, height)ã‚’Rectã«å…¥åŠ›
 			cv::Rect crop_region = cv::Rect(x, y, div_width[c], div_height[r]);
 			std::cout << "DIV " << (c + r * col_num) << "  RECT : " << crop_region << std::endl;
 
-			// •ªŠ„‰æ‘œ‚ğæ“¾
+			// åˆ†å‰²ç”»åƒã‚’å–å¾—
 			cv::Mat div_image = input_image(crop_region);
 
 			split[r] = div_image;
@@ -74,8 +74,18 @@ int main(int argc, char* argv[]) {
 	cv::vconcat(new_image, split[3], new_image);
 	cv::vconcat(new_image, split[2], new_image);
 
-	// ‰æ‘œ‚Ìo—Í
-	cv::imwrite("test.png", new_image);
+	// ç”»åƒã®å‡ºåŠ›
+	cv::imwrite(filepath.filename().string(), new_image);
+}
+
+int main(int argc, char* argv[]) {
+
+	int col_num = 1; // åˆ—æ–¹å‘ã®åˆ†å‰²æ•°
+	int row_num = 4; // è¡Œæ–¹å‘ã®åˆ†å‰²æ•°
+
+	for (int f = 1; f < argc; f++) {
+		convert(argv[f], col_num, row_num);
+	}
 
 	return 0;
 }
