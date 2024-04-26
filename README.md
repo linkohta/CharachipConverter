@@ -5,6 +5,8 @@ RPGツクールVX/VXAceのキャラチップ素材をRPG Developer Bakinか異�
 
 ## 使い方
 
+コンパイル済みのツールは`bin` に保存済みです。
+
 1. `./input` に変換したいキャラチップを保存します
 2. アプリを起動し、変換モードを入力します
   - b :RPG Developer Bakin
