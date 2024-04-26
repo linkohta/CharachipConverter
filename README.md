@@ -1,6 +1,7 @@
 ## 概要
 
 RPGツクールVX/VXAceのキャラチップ素材をRPG Developer Bakinか異世界の創造者のキャラチップに変換するツールです。
+本ツールはOpenCVを利用しています。
 
 ## 使い方
 
@@ -9,3 +10,8 @@ RPGツクールVX/VXAceのキャラチップ素材をRPG Developer Bakinか異�
   - b :RPG Developer Bakin
   - i :異世界の創造者
 3. `./output` に変換後のキャラチップが出力されます
+
+## 注意事項
+
+- 本アプリを利用したことによる損失等は一切保証しません
+- RPG Developer Bakin及び異世界の創造者と本ツール作者は無関係です
