@@ -88,7 +88,7 @@ void convert_bakin(String path, int col_num, int row_num) {
 	cv::vconcat(new_image, split[2], new_image);
 
 	// 画像の出力
-	cv::imwrite(filepath.filename().string(), new_image);
+	cv::imwrite("./output/bakin_" + filepath.filename().string(), new_image);
 }
 
 void convert_isekai(String path, int col_num, int row_num) {
@@ -179,5 +179,5 @@ void convert_isekai(String path, int col_num, int row_num) {
 	//cv::waitKey(0);
 
 	// 画像の出力
-	cv::imwrite("./output/" + filepath.filename().string(), new_image);
+	cv::imwrite("./output/isekai_" + filepath.filename().string(), new_image);
 }

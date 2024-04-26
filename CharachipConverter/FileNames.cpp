@@ -18,7 +18,7 @@ bool getFileNames(std::string folderPath, std::vector<std::string>& file_names)
 
     for (; iter != end && !err; iter.increment(err)) {
         const directory_entry entry = *iter;
-
+        if (entry.path().string().find("png")) continue;
         file_names.push_back(entry.path().string());
         printf("%s\n", file_names.back().c_str());
     }
