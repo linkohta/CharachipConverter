@@ -181,3 +181,78 @@ void convert_isekai(String path, int col_num, int row_num) {
 	// 画像の出力
 	cv::imwrite("./output/isekai_" + filepath.filename().string(), new_image);
 }
+
+void convert_isekai_face(String path, int col_num, int row_num) {
+
+	std::filesystem::path filepath = path;
+	cv::Mat input_image = cv::imread(filepath.generic_string(), -1); // 分割する画像の取得
+
+	if (input_image.empty() == true) {
+		std::cerr << "入力画像が見つからない" << std::endl;
+		return;
+	}
+
+	int width = 384;
+	int height = 192;
+
+	cv::Mat convert_mat;
+
+	int i_width = input_image.cols; // 入力画像の横の長さ
+	int i_height = input_image.rows; // 入力画像の縦の長さ
+	std::cout << "Width = " << i_width << " / Height = " << i_height << std::endl;
+
+	int s_width = i_width % col_num; // 横方向の余り
+	int* div_width = new int[col_num]; // 分割後画像の横の長さを入れる配列
+
+	for (int c = 0; c < col_num; c++) {
+
+		if (s_width > 0) {
+			div_width[c] = i_width / col_num + 1; // 余りを割り当てる
+			s_width--;
+		}
+		else {
+			div_width[c] = i_width / col_num;
+		}
+	}
+
+	int s_height = i_height % row_num; // 縦方向の余り
+	int* div_height = new int[row_num]; // 分割後画像の縦の長さを入れる配列
+
+	for (int r = 0; r < row_num; r++) {
+
+		if (s_height > 0) {
+			div_height[r] = i_height / row_num + 1;    // 余りを割り当てる
+			s_height--;
+		}
+		else {
+			div_height[r] = i_height / row_num;
+		}
+	}
+
+	// 分割画像の出力
+	int x = 0;
+	int y = 0;
+	cv::Mat new_image;
+
+	for (int r = 0; r < 1; r++) {
+		for (int c = 0; c < 1; c++) {
+
+			// 分割する画像の(x, y, width, height)をRectに入力
+			cv::Rect crop_region = cv::Rect(x, y, div_width[c], div_height[r]);
+			std::cout << "DIV " << (c + r) << "  RECT : " << crop_region << std::endl;
+
+			// 分割画像を取得
+			new_image = input_image(crop_region);
+
+			x += div_width[c];
+		}
+		y += div_height[r];
+		x = 0;
+	}
+
+	//cv::imshow("test", new_image);
+	//cv::waitKey(0);
+
+	// 画像の出力
+	cv::imwrite("./output/isekai_face_" + filepath.filename().string(), new_image);
+}
