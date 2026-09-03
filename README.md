@@ -21,3 +21,8 @@ Windowsのネイティブウィンドウで動作するGUIアプリです。
 
 - 本アプリを利用したことによる損失等は一切保証しません
 - RPG Developer Bakin及び異世界の創造者と本ツール作者は無関係です
+
+## ライセンス
+
+本ツールは [Apache License 2.0](LICENSE) のもとで公開されています。
+また、本ツールは画像処理に [OpenCV](https://opencv.org/)（Apache License 2.0）を利用しています。

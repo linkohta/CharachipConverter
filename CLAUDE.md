@@ -8,9 +8,9 @@ RPGツクールVX/VXAceのキャラチップ素材を、RPG Developer Bakinま�
 
 - 言語: C++17
 - GUI: Win32 API（ネイティブウィンドウ、MFCやWPF等のフレームワークは未使用）
-- 画像処理: OpenCV（`opencv_world460`）
-- ビルド: Visual Studio ソリューション（`CharachipConverter.sln`）、プラットフォームツールセット v143、x64/Win32構成あり
-- OpenCVは `C:\opencv\build` にインストールされている前提でインクルードパス・ライブラリパスが設定されている（`CharachipConverter.vcxproj` 参照）
+- 画像処理: OpenCV（`opencv_world500`）
+- ビルド: Visual Studio ソリューション（`CharachipConverter.sln`）、プラットフォームツールセット v143（本環境の実体はv145相当のため、MSBuildからは `/p:PlatformToolset=v145` を指定してビルドする必要がある）、x64/Win32構成あり
+- OpenCVは `C:\opencv\build` にインストールされている前提でインクルードパス・ライブラリパスが設定されている（`CharachipConverter.vcxproj` 参照）。ビルド後イベントで `opencv_world500.dll`（Release）/`opencv_world500d.dll`（Debug）を出力フォルダへ自動コピーするため、実行にPATH設定は不要
 
 ## 開発ルール
 
@@ -33,8 +33,16 @@ RPGツクールVX/VXAceのキャラチップ素材を、RPG Developer Bakinま�
 
 ## ビルド・検証について
 
-この開発環境にはOpenCVがインストールされていないため、Bashエージェントからのフルビルド検証はできない。コード変更後にビルド確認が必要な場合は、OpenCVとVisual Studio（v143ツールセット）がセットアップされた環境でMSBuildを実行するか、Visual Studio上でビルドすること。
+OpenCVは `C:\opencv\build` にインストール済み。MSBuildでビルドする場合はプラットフォームツールセットを明示的に上書きする必要がある。例:
+
+```
+MSBuild.exe CharachipConverter.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v145
+```
 
 ## GUI化の経緯
 
 元は `std::cin`/`std::cout` を使うコンソールアプリだった。現在はWin32ネイティブウィンドウのGUIアプリ（`SubSystem=Windows`）に変更されている。CLIの対話フローは廃止し、フォルダ選択・モード選択・実行をすべてGUI操作で行う。
+
+## ライセンス
+
+本リポジトリは Apache License 2.0（`LICENSE`、Copyright 2024 linkohta）で公開されている。依存ライブラリのOpenCVもApache License 2.0。
