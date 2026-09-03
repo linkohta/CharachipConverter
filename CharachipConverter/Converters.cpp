@@ -1,8 +1,14 @@
 ﻿#pragma once
+#include "Converters.h"
 #include "opencv2/opencv.hpp"
 #include <filesystem>
+#include <iostream>
 
 using namespace cv;
+
+void defaultLog(const std::string& message) {
+	std::cout << message << std::endl;
+}
 
 cv::Mat PinP_tr(const cv::Mat& srcImg, const cv::Mat& smallImg, const int tx, const int ty)
 {
@@ -11,26 +17,29 @@ cv::Mat PinP_tr(const cv::Mat& srcImg, const cv::Mat& smallImg, const int tx, co
 	srcImg.copyTo(dstImg);
 
 	//前景画像の変形行列
+#pragma warning(push)
+#pragma warning(disable: 4996)
 	cv::Mat mat = (cv::Mat_<double>(2, 3) << 1.0, 0.0, tx, 0.0, 1.0, ty);
+#pragma warning(pop)
 
 	//アフィン変換の実行
 	cv::warpAffine(smallImg, dstImg, mat, dstImg.size());
 	return dstImg;
 }
 
-void convert_bakin(String path, int col_num, int row_num) {
+void convert_bakin(String path, const std::string& outputDir, int col_num, int row_num, const LogFunc& log) {
 
 	std::filesystem::path filepath = path;
 	cv::Mat input_image = cv::imread(filepath.generic_string(), -1); // 分割する画像の取得
 
 	if (input_image.empty() == true) {
-		std::cerr << "入力画像が見つからない" << std::endl;
+		log("入力画像が見つからない: " + filepath.string());
 		return;
 	}
 
 	int width = input_image.cols; // 入力画像の横の長さ
 	int height = input_image.rows; // 入力画像の縦の長さ
-	std::cout << "Width = " << width << " / Height = " << height << std::endl;
+	log("Width = " + std::to_string(width) + " / Height = " + std::to_string(height));
 
 	int s_width = width % col_num; // 横方向の余り
 	int* div_width = new int[col_num]; // 分割後画像の横の長さを入れる配列
@@ -70,7 +79,6 @@ void convert_bakin(String path, int col_num, int row_num) {
 
 			// 分割する画像の(x, y, width, height)をRectに入力
 			cv::Rect crop_region = cv::Rect(x, y, div_width[c], div_height[r]);
-			std::cout << "DIV " << (c + r * col_num) << "  RECT : " << crop_region << std::endl;
 
 			// 分割画像を取得
 			cv::Mat div_image = input_image(crop_region);
@@ -83,21 +91,26 @@ void convert_bakin(String path, int col_num, int row_num) {
 		x = 0;
 	}
 
+	delete[] div_width;
+	delete[] div_height;
+
 	cv::vconcat(split[0], split[1], new_image);
 	cv::vconcat(new_image, split[3], new_image);
 	cv::vconcat(new_image, split[2], new_image);
 
 	// 画像の出力
-	cv::imwrite("./output/bakin_" + filepath.filename().string(), new_image);
+	std::filesystem::path outPath = std::filesystem::path(outputDir) / ("bakin_" + filepath.filename().string());
+	cv::imwrite(outPath.string(), new_image);
+	log("出力: " + outPath.string());
 }
 
-void convert_isekai(String path, int col_num, int row_num) {
+void convert_isekai(String path, const std::string& outputDir, int col_num, int row_num, const LogFunc& log) {
 
 	std::filesystem::path filepath = path;
 	cv::Mat input_image = cv::imread(filepath.generic_string(), -1); // 分割する画像の取得
 
 	if (input_image.empty() == true) {
-		std::cerr << "入力画像が見つからない" << std::endl;
+		log("入力画像が見つからない: " + filepath.string());
 		return;
 	}
 
@@ -111,7 +124,7 @@ void convert_isekai(String path, int col_num, int row_num) {
 	//リサイズ
 	int i_width = input_image.cols; // 入力画像の横の長さ
 	int i_height = input_image.rows; // 入力画像の縦の長さ
-	std::cout << "Width = " << i_width << " / Height = " << i_height << std::endl;
+	log("Width = " + std::to_string(i_width) + " / Height = " + std::to_string(i_height));
 
 	int s_width = i_width % col_num; // 横方向の余り
 	int* div_width = new int[col_num]; // 分割後画像の横の長さを入れる配列
@@ -153,14 +166,11 @@ void convert_isekai(String path, int col_num, int row_num) {
 
 			// 分割する画像の(x, y, width, height)をRectに入力
 			cv::Rect crop_region = cv::Rect(x, y, div_width[c], div_height[r]);
-			std::cout << "DIV " << (c + r) << "  RECT : " << crop_region << std::endl;
 
 			// 分割画像を取得
 			cv::Mat div_image = input_image(crop_region);
 			cv::Mat clip = cv::Mat::zeros(cv::Size(32, 64), CV_8UC3);
 			cv::Mat image = PinP_tr(clip, div_image, 0, 24);
-			//cv::imshow("test", image);
-			//cv::waitKey(0);
 			wsplit[c] = image;
 
 			x += div_width[c];
@@ -171,35 +181,34 @@ void convert_isekai(String path, int col_num, int row_num) {
 		x = 0;
 	}
 
+	delete[] div_width;
+	delete[] div_height;
+
 	cv::vconcat(hsplit[0], hsplit[1], new_image);
 	cv::vconcat(new_image, hsplit[2], new_image);
 	cv::vconcat(new_image, hsplit[3], new_image);
 
-	//cv::imshow("test", new_image);
-	//cv::waitKey(0);
-
 	// 画像の出力
-	cv::imwrite("./output/isekai_" + filepath.filename().string(), new_image);
+	std::filesystem::path outPath = std::filesystem::path(outputDir) / ("isekai_" + filepath.filename().string());
+	cv::imwrite(outPath.string(), new_image);
+	log("出力: " + outPath.string());
 }
 
-void convert_isekai_face(String path, int col_num, int row_num) {
+void convert_isekai_face(String path, const std::string& outputDir, int col_num, int row_num, const LogFunc& log) {
 
 	std::filesystem::path filepath = path;
 	cv::Mat input_image = cv::imread(filepath.generic_string(), -1); // 分割する画像の取得
 
 	if (input_image.empty() == true) {
-		std::cerr << "入力画像が見つからない" << std::endl;
+		log("入力画像が見つからない: " + filepath.string());
 		return;
 	}
-
-	int width = 384;
-	int height = 192;
 
 	cv::Mat convert_mat;
 
 	int i_width = input_image.cols; // 入力画像の横の長さ
 	int i_height = input_image.rows; // 入力画像の縦の長さ
-	std::cout << "Width = " << i_width << " / Height = " << i_height << std::endl;
+	log("Width = " + std::to_string(i_width) + " / Height = " + std::to_string(i_height));
 
 	int s_width = i_width % col_num; // 横方向の余り
 	int* div_width = new int[col_num]; // 分割後画像の横の長さを入れる配列
@@ -239,7 +248,6 @@ void convert_isekai_face(String path, int col_num, int row_num) {
 
 			// 分割する画像の(x, y, width, height)をRectに入力
 			cv::Rect crop_region = cv::Rect(x, y, div_width[c], div_height[r]);
-			std::cout << "DIV " << (c + r) << "  RECT : " << crop_region << std::endl;
 
 			// 分割画像を取得
 			new_image = input_image(crop_region);
@@ -250,9 +258,11 @@ void convert_isekai_face(String path, int col_num, int row_num) {
 		x = 0;
 	}
 
-	//cv::imshow("test", new_image);
-	//cv::waitKey(0);
+	delete[] div_width;
+	delete[] div_height;
 
 	// 画像の出力
-	cv::imwrite("./output/isekai_face_" + filepath.filename().string(), new_image);
+	std::filesystem::path outPath = std::filesystem::path(outputDir) / ("isekai_face_" + filepath.filename().string());
+	cv::imwrite(outPath.string(), new_image);
+	log("出力: " + outPath.string());
 }
